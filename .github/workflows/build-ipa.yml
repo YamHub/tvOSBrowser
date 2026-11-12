@@ -1,0 +1,53 @@
+name: Build tvOS Browser IPA
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: macos-15
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Check Xcode and project
+        run: |
+          xcodebuild -version
+          xcodebuild -list -project "_Project/Browser.xcodeproj"
+
+      - name: Build tvOS app
+        run: |
+          set -o pipefail
+          xcodebuild \
+            -project "_Project/Browser.xcodeproj" \
+            -scheme Browser \
+            -configuration Release \
+            -sdk appletvos \
+            -destination 'generic/platform=tvOS' \
+            -derivedDataPath "$RUNNER_TEMP/DerivedData" \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGN_IDENTITY="" \
+            build
+
+      - name: Package IPA
+        run: |
+          set -e
+          APP_PATH="$RUNNER_TEMP/DerivedData/Build/Products/Release-appletvos/Browser.app"
+          test -d "$APP_PATH"
+          mkdir -p "$RUNNER_TEMP/ipa/Payload"
+          cp -R "$APP_PATH" "$RUNNER_TEMP/ipa/Payload/Browser.app"
+          cd "$RUNNER_TEMP/ipa"
+          /usr/bin/zip -qry "$GITHUB_WORKSPACE/tvOSBrowser-unsigned.ipa" Payload
+
+      - name: Upload IPA
+        uses: actions/upload-artifact@v4
+        with:
+          name: tvOSBrowser-unsigned-ipa
+          path: tvOSBrowser-unsigned.ipa
+          if-no-files-found: error
+          retention-days: 7
