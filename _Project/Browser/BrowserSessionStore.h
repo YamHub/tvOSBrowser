@@ -8,5 +8,5 @@
 - (BOOL)restoreSessionIntoViewModel:(BrowserViewModel *)viewModel;
 - (void)saveSessionForViewModel:(BrowserViewModel *)viewModel;
 - (nullable NSURLRequest *)consumeSavedURLToReopenRequestWithNavigationService:(BrowserNavigationService *)navigationService;
-
+- (void)discardSavedSessionAndReopenURL;
 @end
