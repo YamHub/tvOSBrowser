@@ -238,12 +238,16 @@ static CGFloat const kThumbnailStagingOffset = 4096.0;
 
 - (void)restoreInitialStateOrCreateFirstTab {
     self.topMenuView.hidden = !self.viewModel.topNavigationBarVisible;
-    if (![self restoreBrowserSession]) {
-        [self createNewTabLoadingHomePage:NO];
-        return;
-    }
+
+    // Restore existing tabs and browsing session.
+    [self restoreBrowserSession];
+
+    // Initialise the active tab.
     [self initWebView];
     [self refreshActiveTabUI];
+
+    // Force the configured homepage to load on app launch.
+    [self loadHomePage];
 }
 
 - (void)webViewDidAppear {
